@@ -1,81 +1,101 @@
- ## GAME_PROGRAM-EX--2
+# GAME_PROGRAM-EX-2
 ## Create a player movement using character, collectable, player health and score
-## Aim
-Create a playable third-person character in Unreal Engine that can move and run, collect coin-like collectibles, track a Score and Player Health, and display both on-screen (UI).
 
-## Overview:
-Player Character (BP_PlayerCharacter) — handles movement, input, health, and overlaps with collectables.
-Collectable (BP_Collectable) — simple actor with collision that gives score (and optionally health) when overlapped.
-UI (WBP_HUD) — UMG Widget showing Score and Health values.
-GameMode / PlayerState — (optional) hold persistent Score/HighScore across respawns.
-Game flow — pickup increments Score, maybe plays sound/particle and destroys the collectable; health decreases on damage, and player dies or respawns when health ≤ 0.
-## Step-by-step Implementation (Blueprint-first)
-1. Project & Input Setup
-Create a Third Person Blueprint project (or use your existing ThirdPersonMap).
+# Aim
+Create a playable third-person character in Unreal Engine that can move and run, collect coin-like collectibles, track Score and Player Health, and display both on-screen (UI).
 
-Open Project Settings → Input and ensure these mappings exist:
+# Overview
+1. Player Character (BP_PlayerCharacter) — handles movement, input, health, and overlaps with collectables.
+2. Collectable (BP_Collectable) — simple actor with collision that gives score (and optionally health) when overlapped.
+3. UI (WBP_HUD) — UMG Widget showing Score and Health values.
+4. GameMode / PlayerState — optional for persistent Score/HighScore across respawns.
+5. Game Flow:
+   ▪ Collecting items increments Score.
+   ▪ Health decreases when damaged.
+   ▪ Player dies or respawns when Health is less than or equal to zero.
 
-MoveForward (W / Up arrow)
-MoveRight (A/D or Left/Right)
-Turn / LookUp (mouse)
-Jump (SpaceBar)
-Run (Left Shift) — optional if you want sprint
-2. Player Character Blueprint (BP_PlayerCharacter)
-Duplicate the existing ThirdPersonCharacter (or create a new Character blueprint) and name it BP_PlayerCharacter.
+# Step-by-step Implementation (Blueprint First)
 
-Variables to add (Expose where useful):
+## 1. Project & Input Setup
+Create a Third Person Blueprint project (or use the existing ThirdPersonMap).
 
-Score (Integer) — default 0
-MaxHealth (Float) — e.g. 100.0
-Health (Float) — default equal to MaxHealth
-bIsRunning (Boolean) — if you want sprinting
-Movement (in Event Graph):
+Project Settings → Input  
+Add these mappings:
 
-Use Add Movement Input hooked to MoveForward and MoveRight axis mappings.
-Use Turn and LookUp to rotate camera.
-If using Run: on Run Pressed set Max Walk Speed on the Character Movement component (e.g. 1200) and reset on Released (600 default).
-Health functions:
+▪ MoveForward (W / Up Arrow)  
+▪ MoveRight (A / D or Left / Right)  
+▪ Turn / LookUp (Mouse)  
+▪ Jump (SpaceBar)  
+▪ Run (Left Shift) — optional
 
-Function: ApplyDamage(float DamageAmount)
+## 2. Player Character Blueprint (BP_PlayerCharacter)
 
-Subtract DamageAmount from Health.
-If Health <= 0 → call OnDeath event (disable input, play animation, respawn or show Game Over).
-Update HUD (call event to update widget binding).
-Function: AddHealth(float HealAmount)
+### A. Create Blueprint
+Duplicate ThirdPersonCharacter and rename it to BP_PlayerCharacter.
 
-Add to Health but clamp to MaxHealth.
-Update HUD.
-Score management:
+### B. Add Variables
+▪ Score (Integer), default: 0  
+▪ MaxHealth (Float), example: 100  
+▪ Health (Float), default = MaxHealth  
+▪ bIsRunning (Boolean)
 
-Function: AddScore(int Amount)
+### C. Movement Setup
+Use Add Movement Input for MoveForward and MoveRight.  
+Use Turn and LookUp for mouse rotation.
 
-Score = Score + Amount → update HUD.
-BP_Collectable → OnComponentBeginOverlap (Sphere)
-Other Actor → Cast To BP_PlayerCharacter
+Sprint (optional):  
+▪ On Run Pressed → Set Max Walk Speed = 1200  
+▪ On Released → Reset = 600
 
-Branch (if cast success)
+### D. Health Functions
 
-Call AddScore(ScoreValue) on Player Character
-If GiveHealth > 0 Call AddHealth(GiveHealth)
-Play Sound at Location
-Spawn Emitter at Location
-Destroy Actor
-BP_PlayerCharacter → AddScore (Custom Event)
-Input: Amount (int)
-Score = Score + Amount
-Call UpdateScoreDisplay on the HUD widget reference
-(Optional) Play pickup sound, animate, or show floating text
-BP_PlayerCharacter → ApplyDamage (Custom Event)
-Input: Damage (float)
+#### Function: ApplyDamage(float DamageAmount)
+- Subtract DamageAmount from Health.  
+- If Health <= 0, call OnDeath (disable input, play animation, respawn or show Game Over).  
+- Update HUD (call health update event).
 
-Health = Health - Damage
+#### Function: AddHealth(float HealAmount)
+- Add HealAmount to Health, clamp to MaxHealth.  
+- Update HUD.
 
-If Health <= 0
+### E. Score Management
 
-Call OnDeath (Disable Input; show Game Over)
-Update HUD: Call UpdateHealthDisplay
+#### Function: AddScore(int Amount)
+- Score = Score + Amount  
+- Call HUD update function
 
-Output:
-Screenshot 2025-11-13 132833 Screenshot (6) Screenshot (10) Screenshot 2025-11-13 134127
-RESULT
-The AI character successfully roams within the defined NavMesh area, choosing random destinations at intervals using the Behavior Tree logic.
+## 3. Collectable Blueprint (BP_Collectable)
+
+OnComponentBeginOverlap (Sphere):
+
+1. Check Other Actor → Cast to BP_PlayerCharacter  
+2. If cast is successful:  
+   ▪ Call AddScore(ScoreValue)  
+   ▪ If GiveHealth > 0, call AddHealth(GiveHealth)  
+   ▪ Play sound  
+   ▪ Spawn particle effect  
+   ▪ Destroy Actor  
+
+## 4. BP_PlayerCharacter Custom Events
+
+### AddScore Event
+- Input: Amount (int)  
+- Score = Score + Amount  
+- Call UpdateScoreDisplay  
+- (Optional) Play sound or spawn floating text
+
+### ApplyDamage Event
+- Health -= Damage  
+- If Health <= 0 → Call OnDeath  
+- Call UpdateHealthDisplay
+
+# Output (Screenshots)
+<img width="650" height="265" alt="image" src="https://github.com/user-attachments/assets/89fbc5db-1eb2-4ad3-8864-04f196636f63" />
+<img width="1026" height="654" alt="image" src="https://github.com/user-attachments/assets/8a8c2e10-8b2c-4a9a-a21f-4d9bdb2cfcc6" />
+<img width="1026" height="654" alt="image" src="https://github.com/user-attachments/assets/3cab7f7e-aded-45dd-968b-b2cf9a585726" />
+<img width="996" height="504" alt="image" src="https://github.com/user-attachments/assets/1f9ac896-f9d3-4cb0-8766-6e3422ec1a0a" />
+
+
+# Result
+The AI character successfully roams within the NavMesh area using Behavior Tree logic.  
+The player can move, run, jump, collect items, gain score, lose health, and display both Score and Health on-screen using the UI.
